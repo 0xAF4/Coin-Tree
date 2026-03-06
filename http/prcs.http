@@ -1,0 +1,62 @@
+//ETH
+###
+GET http://127.0.0.1:3032/getBalance?coin=ETH&addr=0xc340bF8CBD9D8888a8A38b55222529C4dD83d33E
+
+//SOL
+###
+GET http://127.0.0.1:3032/getBalance?coin=SOL&addr=Gej5z7wYNhew8AzK7xhun6zekjBLFRXiEtZEUXfGUQ68
+
+//TRX
+###
+GET http://127.0.0.1:3002/getBalance?coin=TRX&addr=TPCSatQsUwiKdtRGpw5ttoRVVgz6GSk6jE
+
+//AVAX
+###
+GET http://127.0.0.1:3032/getBalance?coin=AVAX&addr=0x4274f80635183e9bE3c16E1313a16f929B61E00e
+
+//ARB
+###
+GET http://127.0.0.1:3002/getBalance?coin=ARB&addr=0xee488a11475d588908001e0e99e4fd89abda6545
+
+//XRP
+###
+GET http://127.0.0.1:3032/getBalance?coin=XRP&addr=r4wf7enWPxyHtbizyV7ZHiZi5XgwHh4Rzn
+
+//ALGO
+###
+GET http://127.0.0.1:3032/getBalance?coin=ALGO&addr=5SFNTQF5WA7GWS5RQEDZRNQ22GTAPBTLGIQDOBKOSWVT7YOOVKHVMC4Q4U
+
+
+//ETC
+###
+GET http://127.0.0.1:3032/getBalance?coin=ETC&addr=0x80a4243C8FC5d73eCe44F15a43b7bB44646562da
+
+//DOGE
+###
+GET http://127.0.0.1:3032/getBalance?coin=DOGE&addr=DSjG74vvyg2d49KrEsPbwuFkWU4cNACQuW
+
+//BCH
+###
+GET http://127.0.0.1:3002/getBalance?coin=BCH&addr=qrqxcp545ccywrsddeazjras8m0q965lmq6prxprtr
+
+//LTC
+###
+GET http://127.0.0.1:3002/getBalance?coin=BCH&addr=qrqxcp545ccywrsddeazjras8m0q965lmq6prxprtr
+
+//ADA
+###
+GET http://127.0.0.1:3032/getBalance?coin=ADA&addr=addr1q90687kv7dnx293jzarde0q8yuxg54s5wgc6ramhwznt40xuv76re6zce46wv5agawmkq3zu9d7jvmda2y4e0agyqexse8hs74
+
+//XMR
+###
+GET http://127.0.0.1:3032/getBalance?coin=XMR&addr=49LNPHcXRMkRBA4biaciBd4qMwxH9f3PZGqgA2EYztksQ2yE43Tr8pa7ZjgksuVenfWcNGKqNeddGHWu7ejroEJvCcQRt73&view_key=7c14de0bd019c6cda063c2e458083d3c9f891a4b962cb730a83352da8d61f604
+
+
+###
+GET http://127.0.0.1:3002/getBlockchainHeight?coin=BTC
+
+###
+GET http://127.0.0.1:3002/Health
+
+
+

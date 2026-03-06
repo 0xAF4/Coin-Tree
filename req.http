@@ -1,0 +1,7 @@
+POST http://127.0.0.1:3032/buildGraph
+Content-Type: application/json
+
+{
+  "coin": "BCH",
+  "address": "qr55nq22z6jtuvmzshe6kfy6c8lauh7s9qmslp09at"
+}

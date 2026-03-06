@@ -1,0 +1,26 @@
+@host=http://127.0.0.1:3032
+@coin=BTC
+@check_balance_addr=bc1qd40t9gxhjzxvytc5tnrfs9a7ymwyg8sjdjk4dg
+@send_funds_addr=123address
+@private_key=privatekey123
+@amount=0.0001
+@fee=0.000001
+
+
+###
+GET {{host}}/getBalance?coin={{coin}}&addr={{check_balance_addr}}
+
+###
+GET {{host}}/getFee?coin={{coin}}
+
+###
+POST {{host}}/widthdrawFunds
+Content-Type: application/json
+
+{
+    "coin": "{{coin}}",
+    "private_key": "{{private_key}}",
+    "address": "{{send_funds_addr}}",
+    "amount": {{amount}},
+    "fee": {{fee}}
+}
