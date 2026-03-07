@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	database "processor/internal/database"
-	server "processor/internal/server"
+	server   "processor/internal/server"
 
 	l_env "github.com/0xAF4/lib_env"
 )
@@ -42,17 +42,18 @@ func initalize(name string, err error) {
 }
 
 var (
+	btc  *electrum.ElectrumNode
 	doge *electrum.ElectrumNode
 	bch  *electrum.ElectrumNode
 	ltc  *electrum.ElectrumNode
 )
 
 func main() {
-	log.Println("[--+] CoinPay [+--]")
+	log.Println("[--+] CoinPay Processor [+--]")
 
-	/*--- Инициализация конфгурации ---*/
+	/*--- Конфигурация ---*/
 	conf := Config{}
-	err := l_env.FullFillStruct(&conf)
+	err  := l_env.FullFillStruct(&conf)
 	initalize("Configuration", err)
 
 	if conf.App.Debug {
@@ -62,46 +63,58 @@ func main() {
 		defer l_env.Close(&conf.Logs)
 	}
 
-	/*--- Инициализация БД PostgreSQL ---*/
+	/*--- PostgreSQL ---*/
 	db, err := database.New(conf.Database.Driver, conf.Database.ConnStr, conf.Logs.DB)
 	initalize("PostgreSQL", err)
 	defer db.Close()
 
-	/*--- Инициализация Electrum(DOGE) нод ---*/
+	/*--- Electrum(BTC) ---*/
 	if slices.Contains(conf.App.Coins, "BTC") {
-		doge, err = electrum.New("btc", conf.Logs.Common)
+		btc, err = electrum.New("btc", conf.Logs.Common)
 		initalize("Electrum(BTC)", err)
-		defer doge.Close()
-		doge.RunLoops()
+		if err == nil {
+			defer btc.Close()
+			btc.RunLoops()
+		}
 	}
 
-	/*--- Инициализация Electrum(DOGE) нод ---*/
+	/*--- Electrum(DOGE) ---*/
 	if slices.Contains(conf.App.Coins, "DOGE") {
 		doge, err = electrum.New("doge", conf.Logs.Common)
 		initalize("Electrum(DOGE)", err)
-		defer doge.Close()
-		doge.RunLoops()
+		if err == nil {
+			defer doge.Close()
+			doge.RunLoops()
+		}
 	}
 
-	/*--- Инициализация Electrum(BCH) нод ---*/
+	/*--- Electrum(BCH) ---*/
 	if slices.Contains(conf.App.Coins, "BCH") {
 		bch, err = electrum.New("bch", conf.Logs.Common)
 		initalize("Electrum(BCH)", err)
-		defer bch.Close()
-		bch.RunLoops()
+		if err == nil {
+			defer bch.Close()
+			bch.RunLoops()
+		}
 	}
 
-	/*--- Инициализация Electrum(LTC) нод ---*/
+	/*--- Electrum(LTC) ---*/
 	if slices.Contains(conf.App.Coins, "LTC") {
 		ltc, err = electrum.New("ltc", conf.Logs.Common)
 		initalize("Electrum(LTC)", err)
-		defer ltc.Close()
-		ltc.RunLoops()
+		if err == nil {
+			defer ltc.Close()
+			ltc.RunLoops()
+		}
 	}
 
-	/*--- Создание и запуск вебсервера ---*/
-	srv := server.New(conf.App.Port, db, doge, bch, ltc)
+	/*--- Web Server ---*/
+	srv := server.New(conf.App.Port, db, btc, doge, bch, ltc)
 	srv.SetHandlers()
 	initalize("Web Server", nil)
-	srv.Listen()
+
+	log.Printf("[*] Listening on %s | coins: %v\n", conf.App.Port, conf.App.Coins)
+	if err := srv.Listen(); err != nil {
+		log.Fatalf("[-] Server error: %v", err)
+	}
 }

@@ -1,5 +1,12 @@
 package server
 
+import (
+	"io"
+	"strings"
+)
+
+// ─── HTTP Response Models ─────────────────────────────────────────────────────
+
 type AccountResponse struct {
 	Address                     string `json:"address"`
 	Amount                      int64  `json:"amount"`
@@ -49,6 +56,8 @@ type SendFundsStruct struct {
 	Fee        float64 `json:"fee"`
 }
 
+// ─── RPC URLs ─────────────────────────────────────────────────────────────────
+
 const (
 	ETH_RPC_URL  = "https://ethereum-rpc.publicnode.com"
 	SOL_RPC_URL  = "https://solana-rpc.publicnode.com"
@@ -63,3 +72,10 @@ const (
 	ALGO_HTTP_URL = "https://mainnet-api.4160.nodely.dev/v2/accounts/%s?format=json&exclude=all"
 	ADA_HTTP_URL  = "https://ada.coin.space/api/v1/addresses/%s/utxos"
 )
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// jsonReader конвертирует строку в io.Reader для http.Post.
+func jsonReader(s string) io.Reader {
+	return strings.NewReader(s)
+}

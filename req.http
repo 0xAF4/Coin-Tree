@@ -1,3 +1,4 @@
+###
 POST http://127.0.0.1:3032/buildGraph
 Content-Type: application/json
 
@@ -5,3 +6,22 @@ Content-Type: application/json
   "coin": "BCH",
   "address": "qr55nq22z6jtuvmzshe6kfy6c8lauh7s9qmslp09at"
 }
+
+###
+GET http://127.0.0.1:3032/health
+
+###
+GET http://127.0.0.1:3032/getBalance?coin=BCH&addr=qr55nq22z6jtuvmzshe6kfy6c8lauh7s9qmslp09at
+
+###
+GET http://127.0.0.1:3032/getFee?coin=BCH
+
+###
+GET http://127.0.0.1:3032/getTransactions?coin=BCH&addr=qr55nq22z6jtuvmzshe6kfy6c8lauh7s9qmslp09at&limit=10
+
+###
+GET http://127.0.0.1:3032/getChainInfo?coin=BCH
+
+###
+GET http://127.0.0.1:3032/getNodes?coin=BCH
+
