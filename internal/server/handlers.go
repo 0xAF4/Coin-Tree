@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,71 +21,7 @@ func (s *Server) getBalance(c *fiber.Ctx) error {
 		})
 	}
 
-	var (
-		balance interface{}
-		err     error
-	)
-
-	switch coin {
-	// ── Electrum ──────────────────────────────────────────────────────────────
-	case "BTC":
-		if s.BTCNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		balance, err = s.BTCNode.GetBalance(addr)
-	case "DOGE":
-		if s.DogeNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		balance, err = s.DogeNode.GetBalance(addr)
-	case "BCH":
-		if s.BCHNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		balance, err = s.BCHNode.GetBalance(addr)
-	case "LTC":
-		if s.LTCNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		balance, err = s.LTCNode.GetBalance(addr)
-
-	// ── EVM ───────────────────────────────────────────────────────────────────
-	case "ETH":
-		balance, err = getETHBalance(addr)
-	case "BNB":
-		balance, err = getBNBBalance(addr)
-	case "ARB":
-		balance, err = getARBBalance(addr)
-	case "AVAX":
-		balance, err = getAVAXBalance(addr)
-	case "ETC":
-		balance, err = getETCBalance(addr)
-
-	// ── Other ─────────────────────────────────────────────────────────────────
-	case "SOL":
-		balance, err = getSOLBalance(addr)
-	case "TRX":
-		balance, err = getTRXBalance(addr)
-	case "ALGO":
-		balance, err = getALGOBalance(addr)
-	case "ADA":
-		balance, err = getADABalance(addr)
-
-	// ── DB-stored (XMR и другие через chain.GET_BALANCE) ─────────────────────
-	case "XMR":
-		viewKey := c.Query("view_key")
-		var vk *string
-		if viewKey != "" {
-			vk = &viewKey
-		}
-		balance, err = s.DB.GetBalance(coin, addr, vk)
-
-	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false, "msg_txt": "UNDEFINED_COIN: " + coin,
-		})
-	}
-
+	balance, err := s.Nodes[coin].GetBalance(addr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false, "msg_txt": err.Error(),
@@ -109,63 +44,7 @@ func (s *Server) getFee(c *fiber.Ctx) error {
 		})
 	}
 
-	var (
-		fee interface{}
-		err error
-	)
-
-	switch coin {
-	// Electrum nodes возвращают fee через estimatefee
-	case "BTC":
-		if s.BTCNode != nil {
-			fee, err = s.BTCNode.GetFee()
-		} else {
-			fee, err = getBTCFee()
-		}
-	case "DOGE":
-		if s.DogeNode != nil {
-			fee, err = s.DogeNode.GetFee()
-		} else {
-			err = errors.New("DOGE node not initialized")
-		}
-	case "BCH":
-		if s.BCHNode != nil {
-			fee, err = s.BCHNode.GetFee()
-		} else {
-			err = errors.New("BCH node not initialized")
-		}
-	case "LTC":
-		if s.LTCNode != nil {
-			fee, err = s.LTCNode.GetFee()
-		} else {
-			err = errors.New("LTC node not initialized")
-		}
-	case "XMR":
-		fee, err = getXMRFee()
-	case "ETH":
-		fee, err = getETHFee()
-	case "SOL":
-		fee, err = getSOLFee()
-	case "TRX":
-		fee, err = getTRXFee()
-	case "AVAX":
-		fee, err = getAVAXFee()
-	case "ARB":
-		fee, err = getARBFee()
-	case "BNB":
-		fee, err = getBNBFee()
-	case "ETC":
-		fee, err = getETCFee()
-	case "ALGO":
-		fee, err = getALGOFee()
-	case "ADA":
-		fee, err = getADAFee()
-	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false, "msg_txt": "UNDEFINED_COIN: " + coin,
-		})
-	}
-
+	fee, err := s.Nodes[coin].GetFee()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false, "msg_txt": err.Error(),
@@ -195,52 +74,15 @@ func (s *Server) getTransactions(c *fiber.Ctx) error {
 		limit = 50
 	}
 
-	switch coin {
-	case "BTC":
-		if s.BTCNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		txs, err := s.BTCNode.GetAddressTransactions(addr, limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "coin": coin, "address": addr, "transactions": txs})
-
-	case "DOGE":
-		if s.DogeNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		txs, err := s.DogeNode.GetAddressTransactions(addr, limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "coin": coin, "address": addr, "transactions": txs})
-
-	case "BCH":
-		if s.BCHNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		txs, err := s.BCHNode.GetAddressTransactions(addr, limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "coin": coin, "address": addr, "transactions": txs})
-
-	case "LTC":
-		if s.LTCNode == nil {
-			return errNodeDisabled(c, coin)
-		}
-		txs, err := s.LTCNode.GetAddressTransactions(addr, limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "coin": coin, "address": addr, "transactions": txs})
-
-	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false, "msg_txt": "getTransactions not supported for " + coin + " yet",
-		})
+	if s.Nodes[coin] == nil {
+		return errNodeDisabled(c, coin)
 	}
+
+	txs, err := s.Nodes[coin].GetAddressTransactions(addr, limit)
+	if err != nil {
+		return errInternal(c, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "coin": coin, "address": addr, "transactions": txs})
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -273,52 +115,15 @@ func (s *Server) buildGraph(c *fiber.Ctx) error {
 		req.Limit = 50
 	}
 
-	switch req.Coin {
-	case "BTC":
-		if s.BTCNode == nil {
-			return errNodeDisabled(c, req.Coin)
-		}
-		txs, err := s.BTCNode.GetAddressTransactions(req.Address, req.Limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "transactions": txs})
-
-	case "DOGE":
-		if s.DogeNode == nil {
-			return errNodeDisabled(c, req.Coin)
-		}
-		txs, err := s.DogeNode.GetAddressTransactions(req.Address, req.Limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "transactions": txs})
-
-	case "BCH":
-		if s.BCHNode == nil {
-			return errNodeDisabled(c, req.Coin)
-		}
-		txs, err := s.BCHNode.GetAddressTransactions(req.Address, req.Limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "transactions": txs})
-
-	case "LTC":
-		if s.LTCNode == nil {
-			return errNodeDisabled(c, req.Coin)
-		}
-		txs, err := s.LTCNode.GetAddressTransactions(req.Address, req.Limit)
-		if err != nil {
-			return errInternal(c, err)
-		}
-		return c.JSON(fiber.Map{"success": true, "transactions": txs})
-
-	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false, "msg_txt": "buildGraph not supported for " + req.Coin,
-		})
+	if s.Nodes[req.Coin] == nil {
+		return errNodeDisabled(c, req.Coin)
 	}
+
+	txs, err := s.Nodes[req.Coin].GetAddressTransactions(req.Address, req.Limit)
+	if err != nil {
+		return errInternal(c, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "transactions": txs})
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 	"processor/internal/electrum"
-	"slices"
+	"strings"
 
 	database "processor/internal/database"
-	server   "processor/internal/server"
+	server "processor/internal/server"
 
 	l_env "github.com/0xAF4/lib_env"
 )
@@ -41,19 +41,12 @@ func initalize(name string, err error) {
 	}
 }
 
-var (
-	btc  *electrum.ElectrumNode
-	doge *electrum.ElectrumNode
-	bch  *electrum.ElectrumNode
-	ltc  *electrum.ElectrumNode
-)
-
 func main() {
 	log.Println("[--+] CoinPay Processor [+--]")
 
 	/*--- Конфигурация ---*/
 	conf := Config{}
-	err  := l_env.FullFillStruct(&conf)
+	err := l_env.FullFillStruct(&conf)
 	initalize("Configuration", err)
 
 	if conf.App.Debug {
@@ -68,48 +61,19 @@ func main() {
 	initalize("PostgreSQL", err)
 	defer db.Close()
 
-	/*--- Electrum(BTC) ---*/
-	if slices.Contains(conf.App.Coins, "BTC") {
-		btc, err = electrum.New("btc", conf.Logs.Common)
-		initalize("Electrum(BTC)", err)
-		if err == nil {
-			defer btc.Close()
-			btc.RunLoops()
-		}
-	}
+	nodes := map[string]*electrum.ElectrumNode{}
 
-	/*--- Electrum(DOGE) ---*/
-	if slices.Contains(conf.App.Coins, "DOGE") {
-		doge, err = electrum.New("doge", conf.Logs.Common)
-		initalize("Electrum(DOGE)", err)
+	for _, coin := range conf.App.Coins {
+		node, err := electrum.New(strings.ToLower(coin), conf.Logs.Common)
+		initalize("Electrum("+coin+")", err)
 		if err == nil {
-			defer doge.Close()
-			doge.RunLoops()
-		}
-	}
-
-	/*--- Electrum(BCH) ---*/
-	if slices.Contains(conf.App.Coins, "BCH") {
-		bch, err = electrum.New("bch", conf.Logs.Common)
-		initalize("Electrum(BCH)", err)
-		if err == nil {
-			defer bch.Close()
-			bch.RunLoops()
-		}
-	}
-
-	/*--- Electrum(LTC) ---*/
-	if slices.Contains(conf.App.Coins, "LTC") {
-		ltc, err = electrum.New("ltc", conf.Logs.Common)
-		initalize("Electrum(LTC)", err)
-		if err == nil {
-			defer ltc.Close()
-			ltc.RunLoops()
+			defer node.Close()
+			nodes[coin] = node
 		}
 	}
 
 	/*--- Web Server ---*/
-	srv := server.New(conf.App.Port, db, btc, doge, bch, ltc)
+	srv := server.New(conf.App.Port, db, nodes)
 	srv.SetHandlers()
 	initalize("Web Server", nil)
 

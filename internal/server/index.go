@@ -11,23 +11,13 @@ import (
 )
 
 type Server struct {
-	Port     string
-	DB       *database.Database
-	App      *fiber.App
-	BTCNode  *elx.ElectrumNode
-	DogeNode *elx.ElectrumNode
-	BCHNode  *elx.ElectrumNode
-	LTCNode  *elx.ElectrumNode
+	Port  string
+	DB    *database.Database
+	App   *fiber.App
+	Nodes map[string]*elx.ElectrumNode
 }
 
-func New(
-	port string,
-	db *database.Database,
-	btc *elx.ElectrumNode,
-	doge *elx.ElectrumNode,
-	bch *elx.ElectrumNode,
-	ltc *elx.ElectrumNode,
-) *Server {
+func New(port string, db *database.Database, nodes map[string]*elx.ElectrumNode) *Server {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		// Читаемые JSON-ошибки вместо HTML
@@ -43,13 +33,10 @@ func New(
 	})
 
 	return &Server{
-		Port:     port,
-		DB:       db,
-		App:      app,
-		BTCNode:  btc,
-		DogeNode: doge,
-		BCHNode:  bch,
-		LTCNode:  ltc,
+		Port:  port,
+		DB:    db,
+		App:   app,
+		Nodes: nodes,
 	}
 }
 
@@ -68,17 +55,10 @@ func (s *Server) SetHandlers() {
 	// ── Healthcheck ────────────────────────────────────────────────────────────
 	s.App.Get("/health", func(c *fiber.Ctx) error {
 		nodes := fiber.Map{}
-		if s.BTCNode != nil {
-			nodes["BTC"] = "ok"
-		}
-		if s.DogeNode != nil {
-			nodes["DOGE"] = "ok"
-		}
-		if s.BCHNode != nil {
-			nodes["BCH"] = "ok"
-		}
-		if s.LTCNode != nil {
-			nodes["LTC"] = "ok"
+		for coin, node := range s.Nodes {
+			if node != nil {
+				nodes[coin] = "ok"
+			}
 		}
 		return c.JSON(fiber.Map{"success": true, "nodes": nodes})
 	})
