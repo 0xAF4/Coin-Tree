@@ -77,6 +77,7 @@ func (e *ElectrumNode) GetBalance(addr string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	
 
 	RPC := UniversalRPC{
 		ID: GenID(),
